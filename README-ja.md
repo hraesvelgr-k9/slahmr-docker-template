@@ -68,9 +68,13 @@
 │   └── video.yaml         ← setup.sh / prepare_video.sh が生成
 ├── data/
 │   └── inputs/            ← 入力動画ファイルをここに置く
-├── scripts/               ← 推論・前処理ラッパースクリプト
+├── scripts/
+│   ├── prepare_custom.sh      ← custom シーケンスの前処理
+│   ├── prepare_video.sh       ← 動画の前処理（FPS リサンプリング対応）
+│   ├── run_custom_demo.sh     ← custom シーケンスへの SLAHMR 推論実行
+│   └── run_video_demo.sh      ← video シーケンスへの SLAHMR 推論実行
 └── workspace/
-    └── slahmr/            ← make init で git clone される
+    └── slahmr/                ← make init で git clone される
 ```
 
 ---
@@ -248,6 +252,8 @@ make run-custom
 
 `VIDEO` は必須です。`SEQ` を省略した場合はビデオファイルのベース名が使われます。
 
+内部では `make prepare-custom` が `scripts/prepare_custom.sh` を、`make run-custom` が `scripts/run_custom_demo.sh` をコンテナ内で実行します。
+
 ### video パイプライン
 
 ```bash
@@ -258,7 +264,20 @@ make prepare-video VIDEO=/workspace/data/inputs/sample.mp4 SEQ=my_seq FPS=30
 make run-video
 ```
 
+`make prepare-video` が `scripts/prepare_video.sh` を、`make run-video` が `scripts/run_video_demo.sh` をコンテナ内で実行します。
+
 `prepare-video` / `run-video` はともに `configs/video.yaml` を使用します。このファイルはコンテナ起動時に `slahmr/confs/data/video.yaml` として bind-mount されます。
+
+### スクリプト一覧
+
+| スクリプト | 呼び出し元 | 役割 |
+|---|---|---|
+| `scripts/prepare_custom.sh` | `make prepare-custom` | 人物検出・HMR2 実行・custom シーケンスの構築 |
+| `scripts/prepare_video.sh` | `make prepare-video` | 同上（FPS リサンプリング対応） |
+| `scripts/run_custom_demo.sh` | `make run-custom` | custom シーケンスへの SLAHMR 最適化実行 |
+| `scripts/run_video_demo.sh` | `make run-video` | video シーケンスへの SLAHMR 最適化実行 |
+
+4 つのスクリプトはすべてホスト側の `scripts/` に置かれ、`.env` の `HOST_SCRIPTS_DIR` / `CONTAINER_SLAHMR_DIR` 設定を通じてコンテナ内に bind-mount されます。
 
 ---
 
@@ -334,6 +353,7 @@ make prod-config
 - 大容量データセット・チェックポイント・出力ファイル・モデルファイルは Git に含めない
 - `workspace/slahmr` はユーザーが `make init` で作成する前提にし、Git には含めない
 - `configs/custom.yaml` と `configs/video.yaml` はプレースホルダーとしてコミットし、実際の値は前処理スクリプトが実行時に上書きする運用にする
+- `scripts/` 配下の 4 つのスクリプトはすべてコミットする — ホスト側から前処理と推論を呼び出すエントリポイントです
 - `.env.example` に想定される GPU アーキテクチャ値をコメントで記載しておく
 - Compose ファイルを変更したら必ず `make dev-config` / `make prod-config` でマージ結果を確認してから `up` する
 - サービス名を変更する場合は、Compose ファイル・Makefile・README の各コマンド例を一括で置換する
