@@ -1,0 +1,62 @@
+services:
+  slahmr:
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE_PATH}
+      target: dev
+    image: ${IMAGE_NAME}:dev-${IMAGE_TAG}
+    entrypoint: ["/workspace/slahmr/entrypoint.dev.sh"]
+    volumes:
+      # SLAHMR source tree (bind-mount for active development)
+      - type: bind
+        source: ${HOST_SLAHMR_DIR}
+        target: ${CONTAINER_SLAHMR_DIR}
+
+      # scripts directory
+      - type: bind
+        source: ${HOST_SCRIPTS_DIR}
+        target: /workspace/slahmr/scripts
+
+      # host-side data directory
+      - type: bind
+        source: ${HOST_DATA_DIR}
+        target: ${CONTAINER_DATA_DIR}
+
+      # custom Hydra config (single file bind-mount)
+      - type: bind
+        source: ${HOST_CUSTOM_CFG_FILE}
+        target: ${CONTAINER_CUSTOM_CFG_FILE}
+
+      # video Hydra config (single file bind-mount)
+      - type: bind
+        source: ${HOST_VIDEO_CFG_FILE}
+        target: ${CONTAINER_VIDEO_CFG_FILE}
+
+      # bootstrap state stamp (persist across restarts)
+      - type: volume
+        source: slahmr-state
+        target: /var/lib/slahmr
+
+      # conda package cache
+      - type: volume
+        source: slahmr-conda-pkgs
+        target: /opt/conda/pkgs
+
+      # pip download cache
+      - type: volume
+        source: slahmr-pip-cache
+        target: /root/.cache/pip
+
+      # model/inference cache
+      - type: volume
+        source: slahmr-home-cache
+        target: /root/.cache
+
+    working_dir: ${CONTAINER_SLAHMR_DIR}
+    command: bash
+
+volumes:
+  slahmr-state:
+  slahmr-conda-pkgs:
+  slahmr-pip-cache:
+  slahmr-home-cache:

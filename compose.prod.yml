@@ -1,0 +1,25 @@
+services:
+  slahmr:
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE_PATH}
+      target: prod
+    image: ${IMAGE_NAME}:prod-${IMAGE_TAG}
+    container_name: slahmr-prod
+    entrypoint: ["/entrypoint.prod.sh"]
+    volumes:
+      # data directory (input/output)
+      - type: bind
+        source: ${HOST_DATA_DIR}
+        target: ${CONTAINER_DATA_DIR}
+
+      # model/inference cache
+      - type: volume
+        source: slahmr-home-cache
+        target: /root/.cache
+
+    working_dir: ${CONTAINER_SLAHMR_DIR}
+    command: bash
+
+volumes:
+  slahmr-home-cache:

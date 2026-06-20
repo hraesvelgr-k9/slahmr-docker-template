@@ -1,0 +1,28 @@
+# Base service definition shared by dev and prod overrides.
+# Do not use this file directly; use compose.dev.yml or compose.prod.yml.
+services:
+  slahmr:
+    container_name: ${CONTAINER_NAME}
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    runtime: nvidia
+    stdin_open: true
+    tty: true
+    shm_size: ${CONTAINER_SHM_SIZE}
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES}
+      PYTHONUNBUFFERED: "1"
+      FORCE_CUDA: "1"
+      CUDA_HOME: /usr/local/cuda
+      TORCH_CUDA_ARCH_LIST: ${TORCH_CUDA_ARCH_LIST}
+      DATA_ROOT: ${CONTAINER_DATA_DIR}
+      DATA_SPLIT: ${DATA_SPLIT}
+      RUN_OPT: ${RUN_OPT}
+      RUN_VIS: ${RUN_VIS}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

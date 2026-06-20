@@ -1,0 +1,34 @@
+# ----- secrets -----
+.env
+
+# ----- SLAHMR source tree (cloned by setup.sh / make init) -----
+workspace/slahmr/
+
+# ----- data -----
+data/inputs/
+data/images/
+data/slahmr/
+
+# ----- generated configs -----
+configs/custom.yaml
+configs/video.yaml
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ----- Editors -----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ----- OS -----
+.DS_Store
+Thumbs.db
